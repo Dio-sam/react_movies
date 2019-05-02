@@ -10,25 +10,25 @@ class App extends React.Component{
 render(){
   return(
     <Router>
-      <div className="container-fluid">
+      <nav className="nav">
+        <ul >
+          <li ><Link  to="/discover/" >This week</Link></li>
+          <li><Link  to="/popular/">Popular</Link></li>
+          <li ><Link  to="/my-list/" >My List</Link></li>
+        </ul>
+      </nav>
+      
+      <div className="container-fluid content">
         <div className="row">
-          <div className="col-12">
-            <ul>
-              <li><Link to="/" >This week</Link></li>
-              <li><Link to="/popular/">Popular</Link></li>
-              <li><Link to="/my-list/" >My List</Link></li>
-            </ul>
-            <Route path="/" exact component={Discover}/>
-            <Route path="/popular/" component={Popular}/>
-            <Route path="/my-list/" component={MyList}/>
-          </div>
+          <Route path="/discover/:page?" component={Discover}/>
+          <Route path="/popular/:page?" exact component={Popular}/>
+          <Route path="/my-list/" component={MyList}/>
         </div>
       </div>
-      
-
     </Router>
-
+    
   )
+  
 }
 
 }

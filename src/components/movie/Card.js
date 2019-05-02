@@ -2,20 +2,15 @@ import React from "react"
 import DVD from "../../DVD.png"
 class Card extends React.Component{
 render(){
-const  {title,description,image,onClick=()=>{}, id}=this.props
+const  {title,overview,poster_path,onClick=()=>{}, id}=this.props
+const image=`https://image.tmdb.org/t/p/w300/${poster_path}`
 return(
-<div className="col-6 col-md-6">
-    <button className="img-fluid" 
-         onClick={() => onClick(id)}       
-    >
-
-    <img className="img-fluid" src={image==null?DVD:image} alt={title} />
+<div className="col-6  text-center col-md-4 card">
+    <button  onClick={()=>onClick(id)} ><img className="img-fluid" src={poster_path==null?DVD:image} alt={title} /></button> 
+  <div className="info">
     <h5>{title}</h5>
-    <p>{description}</p>
-    </button>
-
-
-
+    {/* <p>{overview}</p> */}
+  </div>
 </div>
 )
 }

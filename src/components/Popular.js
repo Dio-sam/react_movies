@@ -1,105 +1,124 @@
 import React from "react"
 import Card from "../components/movie/Card"
-const message="It doesn't have more movies"
-let newMovies=[]
-let idMovies=[]; 
+import Api from "../utils/Api"
+import LocalStorage from "../utils/LocalStorage"
+import config from '../config';
+import { Link } from 'react-router-dom';
 
 class Popular extends React.Component{
   constructor(props){
     super(props);
-    this.onClickCard=this.onClickCard.bind(this)
-    // this.saveToLocalStorage=this.saveToLocalStorage.bind(this)
     this.state={
       movies:[],
-      currentPage:1,
-      
+      currentPage: parseInt(props.match.params.page)||1  
     }
-  }
-  saveToLocalStorage(idMovie){
-    idMovies.push(idMovie);
-    localStorage.setItem('my_list',JSON.stringify(idMovies))
-   
+    this.onClickCard=this.onClickCard.bind(this)
   }
 
-  onClickCard(movieId) {
-    this.onClickNextMovie();
-    this.saveToLocalStorage(movieId);
-  }
 
-  onClickNextMovie(){
-    console.log(">>> onClickNextMovie")
-    // console.log("currentPage",currentPage)
-    this.setState({
-      currentPage: this.state.currentPage + 1
-    })
+  onClickCard(movieId) {  
+    // this.onClickNextMovie();
+    LocalStorage.save('my-list',movieId) 
+ }
 
-    console.log("<<< onClickNextMovie")
-  }
+  // onClickNextMovie(){
+  //   this.setState({
+  //     currentPage: this.state.currentPage + 1
+  //   })
+  // }
   componentDidMount(){
-    console.log(">>> componentDidMount")
-    const api_key='2396dc7a5b886d921e033a6f87d94ad4'
-    const url=`https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=${api_key} `;
-    fetch(url)
-      .then(res=>res.json())
-      .then(json=>{
-        console.log("##1", url)
-          const movies=json.results
-          console.log(movies)
-          this.setState({
-            movies
-          })
-      }) 
-     
-
-      console.log("<<<< componentDidMount")
+    Api.getPopularMovies()
+      .then(movies=>{
+        this.setState({
+          movies 
+        });
+      });
   }
+ 
+
+  shouldComponentUpdate(nextProps,nextState) {
+    //  console.log('popular cnpmdDidUnextProps',nextProps);
+    // console.log('popular cnpmdDidUnextState',nextState);    
+    // console.log('popular  cmdDidU', this.props);
+    // console.log('popular cmdDidU', this.state);
+    const nextPage = parseInt(nextProps.match.params.page);
+    if (nextPage !== this.state.currentPage) { 
+      if (isNaN(nextPage) === true) {
+      return true;
+       }
+      else{
+        this.setState({
+            currentPage: nextPage 
+          });
+        return false;
+      }
+          
+    }
+    return true;
+  }
+
+  renderPagination(){
+    console.log(this.state)
+    console.log(this.props)
+    const {movies}=this.state
+    const moviesTotal=movies.length;
+    let moviePage = []
+    for(let i=1;i<=moviesTotal/2;i++){
+      moviePage.push(
+        <Link key={i} 
+          to={{
+            pathname: `/popular/${i}`,
+            state: { currentPage: i }
+          }}>{i}
+        </Link>
+      );
+    }
+    return moviePage
+  }
+  
   renderList(){
+    let newMovies=[]
     const {movies,currentPage}=this.state
-    console.log("movies", movies)
-    const Movies=movies;
-    const nbrMovies=movies.length
+    if (movies.length === 0) {
+      return (
+        <div>
+          <h1>Popular</h1>
+          <p>Loading...</p>
+        </div>
+      )
+    }
+    const nbrMovies=movies.length;
     const totalPage=nbrMovies/2;
     if(currentPage>totalPage){
-      return(<h2>{message}</h2>) 
+      return(<h2>{config.MESSAGE}</h2>) 
     }
-    console.log("totalPage",totalPage)
-    console.log("currentPage",currentPage)
-  
-      let min=(currentPage-1)*2;
-      let max=min+2
-      console.log("min",min) 
-      newMovies=Movies.slice(min,max);  
-      console.log("newMovies",newMovies)          
-   
-    const List=newMovies.map((movie,index)=>{return(
-      <Card 
-        isSelected={true}
-        key={index}
-        title={movie.title}
-        description={movie.overview}
-        id={movie.id}
-        image={`https://image.tmdb.org/t/p/w300/${movie.poster_path}`}
-        onClick={this.onClickCard}
-       
-        
-      />
-
-    )})
-      return List
+    let min=(currentPage-1)*2;
+    let max=min+2; 
+    newMovies=movies.slice(min,max);           
+    const List=newMovies.map((movie)=>{
+      return(
+        <Card 
+          {...movie}
+          key={movie.id} 
+          onClick={this.onClickCard}
+        />
+      )
+    })
+    return List;
   }
-  render(){
-    
+
+
+  render(){  
     return(
       <div className="col-12">
-        <div className="row">
-          
-          {this.renderList()}
- 
+        <div className="row justify-content-between">
+            {this.renderList()}
+          <div className="col-12">
+           {this.renderPagination()}
+          </div> 
         </div>
       </div>
     )
-    
-   
   }
 }
 export default Popular

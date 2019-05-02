@@ -1,70 +1,52 @@
 import React from "react";
-import Card from "./movie/Card"
-
+import Card from "../components/movie/Card"
+import Api from "../utils/Api"
+import LocalStorage from "../utils/LocalStorage"
+import config from '../config';
 class MyList extends React.Component{
   constructor(props){
     super(props);
     this.state = {
       movies: [],
-      movieIds : this.getFromLocalStorage()
+      movieIds : LocalStorage.get('my-list')!==null?LocalStorage.get('my-list'):[]
     };
 
-    this.itemsURL=this.itemsURL.bind(this)
-    this.getFromLocalStorage=this.getFromLocalStorage.bind(this)
+  
   }
-  getFromLocalStorage(){
-    const my_list=localStorage.getItem('my_list');
-    const idMovies=JSON.parse(my_list)
-    console.log(idMovies)
-    return idMovies
-  }
-  componentDidMount(){ 
-    
-    const itemsURL=this.itemsURL()
-    Promise.all(itemsURL.map((url,index)=>{
-      return(
-        fetch(url)
-        .then(res=>res.json())
-        .then(json=>json)
-        )}))
+
+  componentDidMount(){
+    console.log( "ids",this.state.movieIds)
+    const itemsURL=this.state.movieIds.map(id=> Api.getMovie(id))
+    Promise.all(itemsURL)
     .then((movies) => {
       this.setState({
         movies
-      })
-      console.log(movies)
-  })
+      })  
+    });
   }
-  itemsURL(){
-   let itemsId=this.state.movieIds;
-   let URLs=[]
-   console.log('ID', itemsId) 
-   console.log('ID.lenth', itemsId.length) 
-   
-   const API_KEY='2396dc7a5b886d921e033a6f87d94ad4'
-   for(let i=0;i< itemsId.length;i++){
-    URLs.push(`http://api.themoviedb.org/3/movie/${itemsId[i]}?api_key=${API_KEY}`)  
-  }
-   console.log('urls',URLs)
-   return URLs
-  }
+  
   render(){
-  let {movies}=this.state
+    
+    let {movies}=this.state
+    if (this.state.movieIds.length ===0) {
+      return (
+        <div>
+          <h1>{config.MSG}</h1>
+        </div>
+      )}
+   console.log(typeof this.state.movieIds)
     return(
-
       <div className='col-12'>
-        <div className='row'>
-         {movies.map((movie,index)=>{
+        <div className='row justify-content-between'>
+         { 
+           movies.map((movie)=>{
            return(
             <Card 
-            isSlected={false}
-              key={index}
-              title={movie.title}
-              description={movie.overview} 
-              image={`https://image.tmdb.org/t/p/w300/${movie.poster_path}`}   
+              {...movie}
+              key={movie.id}    
             />
            )
          })} 
-
         </div>
       </div>
     )
